@@ -24,8 +24,8 @@ llist_t *merge_list(llist_t *a, llist_t *b)
     node_t *current = NULL;
     while (a->size && b->size) {
         llist_t *small = (llist_t *)
-                         ((intptr_t) a * (a->head->data <= b->head->data) +
-                          (intptr_t) b * (a->head->data > b->head->data));
+                         ((intptr_t) a * (strcmp(a->head->data,b->head->data) < 0 ? 1:0) +
+                          (intptr_t) b * (strcmp(a->head->data,b->head->data) < 0 ? 0:1));
         if (current) {
             current->next = small->head;
             current = current->next;
@@ -148,21 +148,29 @@ int main(int argc, char const *argv[])
     }
     thread_count = atoi(argv[1]);
     data_count = atoi(argv[2]);
-    max_cut = thread_count * (thread_count <= data_count) +
-              data_count * (thread_count > data_count) - 1;
-
+   
     /* Read data */
     the_list = list_new();
 
     /* FIXME: remove all all occurrences of printf and scanf
      * in favor of automated test flow.
      */
+     FILE* fp = fopen("input.txt","r");
+     long int con=0;
     printf("input unsorted data line-by-line\n");
-    for (int i = 0; i < data_count; ++i) {
-        long int data;
-        scanf("%ld", &data);
+    val_t data;
+    while (fgets(data, sizeof(data), fp)!=NULL) {
+        //printf("endinput +%d\n",data[0]);
+        con=con+1;
         list_add(the_list, data);
     }
+    printf("endinput +%ld\n",con);
+    data_count = con;
+     max_cut = thread_count * (thread_count <= data_count) +
+              data_count * (thread_count > data_count) - 1;
+
+    fclose(fp);
+
 
     /* initialize tasks inside thread pool */
     pthread_mutex_init(&(data_context.mutex), NULL);
